@@ -8,4 +8,4 @@ Currently in a non-functional state; steady updates will be developed to create 
 
 ## Note
 This is a training / demonstration project, designed only to work with a certain local SQL Server Instance, so it has no functionality when deployed elsewhere.
-This will be refictied in the planned sequel project, "Higher or Lower Academy Online" utilising a cloud database.
+This will be rectified in the planned sequel project, "Higher or Lower Academy Online" utilising a cloud database.
