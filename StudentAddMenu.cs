@@ -20,6 +20,9 @@ namespace HigherOrLowerAcademyApp
 
         public DBLiason dbL; // we can pass this in from the main student viewer, or some other place it's already been made bfore this menu appears, nee?
 
+
+        public StudentViewer studViewForm; // try and keep a refernce to the form that opened this one, so we can talk to it, such as refreshing it on the way back
+
         public StudentAddMenu()
         {
             InitializeComponent();
@@ -35,20 +38,17 @@ namespace HigherOrLowerAcademyApp
 
         }
 
-        private void blessedByGodsLabel_Click(object sender, EventArgs e)
+        private bool SubmitStudent()
         {
+            // attemts to add the new student to the database, or updates edited student record. returns true is successful, a false if nay
 
-        }
-
-        private bool SubmitNewStudent()
-        {
-            // attemts to add the new student to the database, returns true is successful, a false if nay
-
-            // *** COMING SOON
             // =======================================================================================================
             // INPUT VALIDATION OR AUTOEDITS 
             // before we get into the main action, we should do validation on the boxes to make sure it's all good
-            if (!ValidateInputs())
+            // this is done with an application system - see the details of the called fucntion here for more details,
+            // but it basically refuses progress if something is wrong, or might quietly make edits itself
+            DBClassFactory.StudentApplication sApp = ValidateAndUpdateInputs();
+            if (sApp.applicationValid == false)
                 return false; // stop here and report that we failed
             // ======================================================================================================
 
@@ -61,6 +61,7 @@ namespace HigherOrLowerAcademyApp
             using SqlConnection con = dbL.ConnectToDatabase();
 
             // --------------------------------------------------------------------------------------------------------
+            // TRANSACTION WITH DATABASE
 
             // this will have 2 main routes, one for making a new record, and another for updating an existing record
             // we will construct sql queries using the 'dapper parametisation' method, where we put refernces in the sql to
@@ -69,77 +70,92 @@ namespace HigherOrLowerAcademyApp
             // is just the superior method, even though it's a but more writing.
             string sql = "";
             int rowsEffected = 0;
-            string notesBox = StudentNotesBox.Text; // see note below on what i did this for some reason ***
+            bool submitSuccessful = true; // for our return at the end, assumes true and trips to false if checks fail
 
-            // *** check best practice for adding try and catch to these execite, or shall we rely on then just returning 0 to tell us they didn't work, and 
-            // not worry too much about what the problem was, at this level?
+            // i am paranoid about running thing son teh DB, so i will look for exceptions here
 
-            if (editMode && editStudentID!=-1)
+            try
             {
-                // UPDATE
-                sql = "UPDATE Students SET StudentName = @Name, StudentNotes = @Notes, BlessedByTheGods = @Blessed FROM Students WHERE StudentID=@StudentID";
+                if (editMode && editStudentID != -1) // either update the student we're editring, or make a new one, both read the data from the studentapplication in teh same way
+                {
+                    // UPDATE
+                    sql = "UPDATE Students SET StudentName = @Name, StudentNotes = @Notes, BlessedByTheGods = @Blessed FROM Students WHERE StudentID=@StudentID";
 
-                // now pass in all the args. this is done with a new {} list-looking format kinda thing, for whatever reason. gotta pas in the right order
-                rowsEffected = con.Execute(sql, new { NameInputBox.Text, notesBox, blessedByGodsCheckbox.Checked, editStudentID });
-                // strange issue in that you can't have several things call .text within th e{} list for reasons I don['t understand, so i read the notes seperately, whatver... ***
+                    // now pass in all the args. this is done with a new {} list-looking format kinda thing, for whatever reason. gotta pas in the right order
+                    rowsEffected = con.Execute(sql, new { Name = sApp.studentName, Notes = sApp.studentNotes, Blessed = sApp.blessedByGods, StudentID = editStudentID });
+                }
+                else
+                {
+                    // INSERT - similar to above but we do the insert syntax instead, different because sql hates yhou
+                    sql = "INSERT INTO Students (StudentName, StudentNotes, BlessedByTheGods) VALUES (@Name, @Notes, @Blessed)";
+                    rowsEffected = con.Execute(sql, new { Name = sApp.studentName, Notes = sApp.studentNotes, Blessed = sApp.blessedByGods });
+                }
 
+                // POST EXECUTION CHECK
+                // since the execute returns rows effected, we can see if it actually did anything. i.e. it might have no effet without raising an exception, so we will have a specical catch-style block here
+                if (rowsEffected == 0)
+                {
+                    submitSuccessful = false;
+                    MessageBox.Show("Submission to database was made, but no rows were updated/added. Something is pretty wrong then, huh? You probably been to contact OffyD about this. ***");
+                    // *** we need to be able to provide some helpful advice, but iam niot sure what would even cause this issue, or if there is anything
+                    // you can do other than get the developer to try and fix it. it is possible to look at the con and see error messages printed on it ***
+                }
+                // there is also the ultra-outside possibility that 2 rows were updated due to an ID conflict or something! this isn't really a failure for this method's purposes,
+                // but it means trouble, and needs urgent attention.
+                else if (rowsEffected > 1)
+                {
+                    MessageBox.Show($"Submission to the database was made, however more than 1 record has been added / edited. " +
+                        $"This is unexpected behaviour, indicative of database issues, such as student ID number being non-unique. " +
+                        $"Please contact DBA OffyD and beg him to fix this.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // INSERT - similar to above but we do the insert syntax instead, different because sql hates yhou
-                sql = "INSERT INTO Students (StudentName, StudentNotes, BlessedByTheGods) VALUES (@Name, @Notes, @Blessed)";
-
-                rowsEffected = con.Execute(sql, new { NameInputBox.Text, notesBox, blessedByGodsCheckbox.Checked });
+                MessageBox.Show($"Transaction with Higher or Lower Academy Database has failed.\nError Message: {ex.Message}");
+                submitSuccessful = false;
             }
 
             // --------------------------------------------------------------------------------------------------------
 
-            // POST EXECUTION CHECK
-            bool submitSuccessful = true;
-            // since the execute returns rows effected, we can see if it actually did anything
-            if (rowsEffected == 0)
-            {
-                submitSuccessful = false;
-                MessageBox.Show("Submission to database was made, but no rows were updated/added. Something is pretty wrong then, huh? You probably been to contact OffyD about this. ***");
-                // *** we need to be able to provide some helpful advice, but iam niot sure what would even cause this issue, or if there is anything
-                // you can do other than get the developer to try and fix it
-            }
-
-            // ---------------------------------------------------------------------------------------------------------
             return submitSuccessful;
         }
 
-        private bool ValidateInputs()
+        private DBClassFactory.StudentApplication ValidateAndUpdateInputs()
         {
-            // this function will look over all the user-editable inputs and run any particular validation needed on them, returning true is all passed.
-            // allong the way it will generate an error message for us to have helpful feedback on what to do if validation fails.
-            // if we're doing any auto-replacements, we can even do that here too.
+            // validation is being outsourced to the relevant part of the DBClassFactory, where manual created of classes normlaly used for representing DB rows will
+            /// be centrally handled. th eprocess will return any error messages we need, and a copy of teh student, in case we need to update our fields form it, or 
+            // use it to read our values for the next step. which we should, so i don't know why I wrote 'in case'.
 
-            bool validationSuccessful = true;
-            string errorMessage = default;
-            // -------------------------------------------------
-            // NAME
-            string name = this.NameInputBox.Text;
-            if (String.IsNullOrWhiteSpace(name))
-            {
-                // it's nothing, or just loads of spaces / non-character characters
-                errorMessage += "You need to enter the student's name. ";
-                validationSuccessful = false;
-            }
-            else if(String.Equals(name,"Devin"))
-            {
-                errorMessage += "The student cannot be named Devin. There is only 1 Devin, and this student is not them. ";
-                validationSuccessful=false;
-            }
+            // this functio can actually change the value of inputs according to any atuomatic schemes the ClassFactory might apply. so we will also read back data
+            // from teh application, for safety
 
             // -------------------------------------------------
+            // SUBMIT AN APPLICATION
+            // the way student creation works is that we first send an application to the factory, and all the validation will happen over there
+            DBClassFactory.StudentApplication sApp = new DBClassFactory.StudentApplication
+                (
+                this.NameInputBox.Text,
+                this.StudentNotesBox.Text,
+                this.blessedByGodsCheckbox.Checked
+                );
 
+            sApp = DBClassFactory.ProcessStudentApplication(sApp); //  magic happens in there
+            // ---------------------------------------------------
+            // READ BACK DATA
+            // i am going to allow the factory to alter the data if it wants, and this can be done regardless of validation state, in principal. any changes
+            // made will be reflected right back in the form controls. we also need to pass the application back to the callin gcode so it can use updated
+            // values in any tudent creation that ensures.
 
-            // CONCLUSION
-            if (!validationSuccessful || !String.IsNullOrWhiteSpace(errorMessage)) // for safety, show error if anything got in there, even when validation passes
-                MessageBox.Show(errorMessage);
+            NameInputBox.Text = sApp.studentName;
+            StudentNotesBox.Text = sApp.studentNotes;
+            blessedByGodsCheckbox.Checked = sApp.blessedByGods;
+            // ----------------------------------------------------
 
-            return validationSuccessful;
+            // CONCLUSION - read out message attached to application, if needed
+            if (!sApp.applicationValid || !String.IsNullOrWhiteSpace(sApp.validationMessage)) // for safety, show error if anything got in there, even when validation passes
+                MessageBox.Show(sApp.validationMessage);
+
+            return sApp;
         }
 
 
@@ -159,6 +175,42 @@ namespace HigherOrLowerAcademyApp
         private void StudentAddMenu_FormClosing(object sender, FormClosingEventArgs e)
         {
             // clean up stuff here maybe ***?
+        }
+
+        private void DoneButton_Click(object sender, EventArgs e)
+        { // basically the done button will try to transact what's in the input controls with the datbase. validation and checks will happen, of course.
+
+            // --------------------------------------
+            // SUBMISSION ATTEMPT
+            bool submissionSuccess = false;
+            try
+            {
+                submissionSuccess = SubmitStudent();
+            }
+            catch
+            {
+                MessageBox.Show("Submission failed. :(");
+            }
+
+            // --------------------------------------
+            // CLOSE ON SUCCESSFUL SUBMISSION
+
+            // then we also close this form, which will return us to the main student viewer form, which itsself will need updating
+            if (submissionSuccess) // don't need to close if the submission failed though, stays open and user might have messages to read and work to do
+            {
+                // i would like it if when you refresh the list, it automatically reselects the row the student was on, possibly including scrolling 
+                // to its position ***
+
+                studViewForm.GenerateAndShowStudentList();
+                // *** would like to update th status bar on the the viewer form with a success message
+                this.Close();
+            }
+        }
+
+        private void CancelButton_Click(object sender, EventArgs e)
+        {
+            // simply throws out everything, not much to do here
+            this.Close();
         }
     }
 

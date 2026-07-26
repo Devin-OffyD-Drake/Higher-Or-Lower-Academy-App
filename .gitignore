@@ -1,0 +1,29 @@
+
+/obj
+/bin
+/.vs
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+*.dll
+*.exe
+*.pdb
+
+# Generated files
+*.cache
+*.log
+
+# NuGet packages
+packages/
+*.nupkg
+
+# Others
+*.dbmdl
+*.jfm
+.vs/HigherOrLowerAcademyApp.slnx/DesignTimeBuild/.dtbcache.v2
+/.vs
