@@ -35,6 +35,8 @@
             returnToMainMenuToolStripMenuItem = new ToolStripMenuItem();
             quitHoLAcademyAppToolStripMenuItem = new ToolStripMenuItem();
             NewStudentButton = new Button();
+            EditStudentButton = new Button();
+            deleteStudentButton = new Button();
             ((System.ComponentModel.ISupportInitialize)StudentDataGridView).BeginInit();
             menuStripStudentViewer.SuspendLayout();
             SuspendLayout();
@@ -43,6 +45,7 @@
             // 
             StudentDataGridView.AllowUserToAddRows = false;
             StudentDataGridView.AllowUserToDeleteRows = false;
+            StudentDataGridView.AllowUserToOrderColumns = true;
             StudentDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
             StudentDataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             StudentDataGridView.Location = new Point(13, 32);
@@ -105,11 +108,33 @@
             NewStudentButton.UseVisualStyleBackColor = true;
             NewStudentButton.Click += NewStudentButton_Click;
             // 
+            // EditStudentButton
+            // 
+            EditStudentButton.Location = new Point(244, 422);
+            EditStudentButton.Name = "EditStudentButton";
+            EditStudentButton.Size = new Size(214, 36);
+            EditStudentButton.TabIndex = 5;
+            EditStudentButton.Text = "Edit Selected Student";
+            EditStudentButton.UseVisualStyleBackColor = true;
+            EditStudentButton.Click += EditStudentButton_Click;
+            // 
+            // deleteStudentButton
+            // 
+            deleteStudentButton.Location = new Point(473, 422);
+            deleteStudentButton.Name = "deleteStudentButton";
+            deleteStudentButton.Size = new Size(214, 36);
+            deleteStudentButton.TabIndex = 6;
+            deleteStudentButton.Text = "Delete Selected Student";
+            deleteStudentButton.UseVisualStyleBackColor = true;
+            deleteStudentButton.Click += deleteStudentButton_Click;
+            // 
             // StudentViewer
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(982, 503);
+            Controls.Add(deleteStudentButton);
+            Controls.Add(EditStudentButton);
             Controls.Add(NewStudentButton);
             Controls.Add(statusStrip);
             Controls.Add(menuStripStudentViewer);
@@ -135,5 +160,7 @@
         private ToolStripMenuItem returnToMainMenuToolStripMenuItem;
         private ToolStripMenuItem quitHoLAcademyAppToolStripMenuItem;
         private Button NewStudentButton;
+        private Button EditStudentButton;
+        private Button deleteStudentButton;
     }
 }

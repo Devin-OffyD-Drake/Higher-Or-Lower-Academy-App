@@ -93,7 +93,6 @@
             blessedByGodsLabel.TabIndex = 4;
             blessedByGodsLabel.Text = "Blessed by Gods:";
             blessedByGodsLabel.TextAlign = ContentAlignment.MiddleRight;
-            blessedByGodsLabel.Click += blessedByGodsLabel_Click;
             // 
             // StudentNotesBox
             // 
@@ -124,6 +123,7 @@
             DoneButton.TabIndex = 7;
             DoneButton.Text = "Done";
             DoneButton.UseVisualStyleBackColor = true;
+            DoneButton.Click += DoneButton_Click;
             // 
             // CancelButton
             // 
@@ -133,6 +133,7 @@
             CancelButton.TabIndex = 8;
             CancelButton.Text = "Cancel";
             CancelButton.UseVisualStyleBackColor = true;
+            CancelButton.Click += CancelButton_Click;
             // 
             // StudentAddMenu
             // 
