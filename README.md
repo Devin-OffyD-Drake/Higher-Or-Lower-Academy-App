@@ -13,6 +13,9 @@ Currently in a non-functional state; steady updates will be developed to create 
 * Create a T-SQL query to report student game performance and make it the database source of the Student Viewer
 * Begin progressing towards having the App handle the games themselves by adding a main menu with ability to identify user / admin, with available controls changing accordingly.
 
+### 0.2.1 Viewer Fields Update
+* The Student viewer now includes reporting fields calculated with SQL Server database views.
+
 ### 0.2 Student CRUD Update
 * Added the ability to create, edit, and delete student records via the Student Viewer form.
 

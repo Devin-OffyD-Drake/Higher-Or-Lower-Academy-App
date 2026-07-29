@@ -29,6 +29,7 @@ namespace HigherOrLowerAcademyApp
         public enum Tables
         {
             Student,
+            StudentViewerData,
             NotApplicable // no functionality as it stands
         }
 
@@ -72,6 +73,11 @@ namespace HigherOrLowerAcademyApp
             {
                 case Tables.Student:
                     s = "StudentID AS studentID, StudentName AS studentName, StudentNotes AS notes, BlessedByTheGods AS blessedByGods";
+                    break;
+
+                case Tables.StudentViewerData: // NOTE TEH SUTDENT STUFF IS REPEATED HERE BECAUSE I SUCK
+                    s = "StudentID AS studentID, StudentName AS studentName, BlessedByTheGods AS blessedByGods, " +
+                        "[Total Games] as totalGames, [Average Score] as averageScore, StudentNotes AS notes";
                     break;
 
                 // *** MORE COMING SOON YA

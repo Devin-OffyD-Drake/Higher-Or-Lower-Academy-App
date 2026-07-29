@@ -8,8 +8,7 @@ namespace HigherOrLowerAcademyApp
 {
     // THINGS TO DO
     // *** some kinda 'export to excel or csv' type button
-    // ability to detect what it selected and open a version of the new student menu to edit it, or a dialog to let you delete a student
-    // *** the winforms limitatoin where you can't resize the form kinda SUCKS. is ther a way around it? can i port this whole thin gint oa better framework
+    // *** the winforms limitation where you can't resize the form kinda SUCKS. is ther a way around it? can i port this whole thin gint oa better framework
     // with automatic dynamic UI? i guess winforms isn't for this and I should forget it for now, but i'm still mad.
 
     public partial class StudentViewer : Form
@@ -34,7 +33,7 @@ namespace HigherOrLowerAcademyApp
             // we nneed to load some student data from sql server. what exactly we load isn't cler right now, might be a viewin teh end, 
             // *** but as amn example for the time being, let's try to load up teh sutdent table to display it
 
-            List<Student> loadedStudentsList = GetStudentList();
+            List<StudentViewerRow> loadedStudentsList = GetStudentViewerList();
             // *** do something with it to show in data grid view, and see what we can configure about it
 
             DataGridView dgv = this.StudentDataGridView;
@@ -63,9 +62,12 @@ namespace HigherOrLowerAcademyApp
             dgv.Columns["studentName"].HeaderText = "Name";
             dgv.Columns["blessedByGods"].HeaderText = "Blessed?";
             dgv.Columns["notes"].HeaderText = "Notes";
+            dgv.Columns["totalGames"].HeaderText = "Total Games";
+            dgv.Columns["averageScore"].HeaderText = "Average Score";
 
-            // i want to force otes to be at the end
-            dgv.Columns["notes"].DisplayIndex = dgv.Columns.Count - 1;
+            // note the default order the column will appear in (both DisplayIndex and Index properties of dgv.Column[X], is determined by the order the variables
+            // are delcared in on the StudentViewerRow class.
+
         }
 
         private void NewStudentButton_Click(object sender, EventArgs e)
@@ -86,7 +88,7 @@ namespace HigherOrLowerAcademyApp
             studentAddMenu.Show();
         }
 
-        private List<Student> GetStudentList()
+        private List<StudentViewerRow> GetStudentViewerList()
         {
             // TO INTERACT WITH A DB WE NEED a) the Microsoft.Data.SqlClient NuGet package, and b) the Dapper NuGet package installed, and invoked with using at the top
 
@@ -105,21 +107,23 @@ namespace HigherOrLowerAcademyApp
             // with dapper the process of interacting with teh connection is imsplified. we don't even have to officially open teh connectin, it seems. we can return
             // a set query directly into a list of objects, as long as those objects have properties that map to the column names. wish me luck then.
             // IMPORTANTLY you need to alias each column with the name of the property on teh custom class, so it knows where to put it
-            // THIS WON'T UPDATE IF YOU EVER CHANGE THE PROPERTY NAME. ALSO THE PROETY NEEDS THA TGETTER SETTER THING.
-            // *** WE WILL likely change this to load a view ith some logic in it so that the columns include reporting via aggregate functions, and the view ill be saved in
-            // the db, so a more complex query will appear here
-            string query = $"SELECT {dbL.GetAliasedColumnsString(DBLiason.Tables.Student)} FROM Students";
+            // THIS WON'T UPDATE IF YOU EVER CHANGE THE PROPERTY NAME. ALSO THE PROETY NEEDS GETTER SETTER.
+
+            string query = $"SELECT {dbL.GetAliasedColumnsString(DBLiason.Tables.StudentViewerData)} FROM StudentViewerData;";
             try
             {
-                return c.Query<Student>(query).AsList();
+                
+
+                return c.Query<StudentViewerRow>(query).AsList();
                 // so it tries to convert the return from the query into Student objects, and AsList lets us then use that as a list in c#
                 // *** validation and handling and alternate returns go here
             }
-            catch
+            catch (Exception ex)
             {
                 // COULDN'T LOAD, PANIC TIME, ALERT USER, log error, allow alternative behaviour or whathaveyou
 
                 string noStudentListMsg = "Failed to load student list from database. Check Error log???***";
+                noStudentListMsg += $"\nException: {ex.Message}";
                 this.statusStrip.Text = noStudentListMsg;
                 this.statusStrip.Show(); // necessary*** can't really see how statuc strip works, we'l need a status strip update at some point?
                 MessageBox.Show(noStudentListMsg);
