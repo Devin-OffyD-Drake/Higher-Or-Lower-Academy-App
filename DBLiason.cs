@@ -30,13 +30,15 @@ namespace HigherOrLowerAcademyApp
         {
             Student,
             StudentViewerData,
+            Users,
             NotApplicable // no functionality as it stands
         }
 
         // i will also keep a list of a hardcoded column snames of the primary key for each table, which will be useful in allowing us to use soem general functions in here
         public static Dictionary<Tables, string> primaryKeyNames = new Dictionary<Tables, string>
         {
-            {Tables.Student, "StudentID"}
+            {Tables.Student, "StudentID"},
+            {Tables.Users, "UserID" }
             // add more here as an when needed (commas between the sets)
         };
 
@@ -49,6 +51,10 @@ namespace HigherOrLowerAcademyApp
             {
                 case Tables.Student:
                     tableNameString = "Students";
+                    break;
+
+                case Tables.Users:
+                    tableNameString = "Users";
                     break;
 
                 // more coming soon...
@@ -78,6 +84,10 @@ namespace HigherOrLowerAcademyApp
                 case Tables.StudentViewerData: // NOTE TEH SUTDENT STUFF IS REPEATED HERE BECAUSE I SUCK
                     s = "StudentID AS studentID, StudentName AS studentName, BlessedByTheGods AS blessedByGods, " +
                         "[Total Games] as totalGames, [Average Score] as averageScore, StudentNotes AS notes";
+                    break;
+
+                case Tables.Users:
+                    s = "UserID as userID, UserName as userName, StudentID as studentID, UserPassword as userPassword, IsAdmin as isAdmin";
                     break;
 
                 // *** MORE COMING SOON YA
@@ -162,11 +172,7 @@ namespace HigherOrLowerAcademyApp
                 { // eeprion was probably c.Execute failing to talk to the database, or the SQL query being invalid in some way. big problem, probably needs dev attention.
                     MessageBox.Show($"Delete execution failed on table {tableName}. Sorry. PLease check the SQL is correct. Attempted query:\n{query}");
                 }
-
-
             }
-
-
 
             return deleteSuccessful;
 
@@ -215,6 +221,31 @@ namespace HigherOrLowerAcademyApp
         }
         // ================================================================================================
 
+        // USER TRANSACTIONS
+
+        public bool AddUserForStudent(int ID, string name)
+        {
+            // usually when a student is added to teh database, a User will need to be added as well. or if you want to make a new user for a student for any reason
+            bool success = false;
+
+            if (ID>0 && !String.IsNullOrEmpty(name))
+            {
+                using SqlConnection c = ConnectToDatabase();
+                string query = "INSERT INTO Users (StudentID, UserName) VALUES (@StudentID, @UserName)";
+                try
+                {
+                    int rows = c.Execute(query, new { StudentID = ID, UserName = name });
+                    if (rows > 0)
+                        success = true; // something changed in the DB let's assume it's all good
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show($"Failed to add user entry for student {name}.\nException message:{ex.Message}");
+                }
+            }
+
+            return success;
+        }
 
 
     }

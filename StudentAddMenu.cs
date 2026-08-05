@@ -87,8 +87,18 @@ namespace HigherOrLowerAcademyApp
                 else
                 {
                     // INSERT - similar to above but we do the insert syntax instead, different because sql hates yhou
-                    sql = "INSERT INTO Students (StudentName, StudentNotes, BlessedByTheGods) VALUES (@Name, @Notes, @Blessed)";
-                    rowsEffected = con.Execute(sql, new { Name = sApp.studentName, Notes = sApp.studentNotes, Blessed = sApp.blessedByGods });
+                    sql = "INSERT INTO Students (StudentName, StudentNotes, BlessedByTheGods) VALUES (@Name, @Notes, @Blessed) " +
+                        "SELECT CAST(SCOPE_IDENTITY() AS INT);"; // this second part allows us to have the execution return the auto ID number SQL server used, which we need below
+                    int newID = con.ExecuteScalar<int>(sql, new { Name = sApp.studentName, Notes = sApp.studentNotes, Blessed = sApp.blessedByGods });
+
+                    // previously we used con.Execute, which returns >0 if the insert was successful. instead, executescalar will return 0 if the insert failed. so to
+                    // fit in with my previosu validation, we'll do...
+                    if (newID > 0)
+                        rowsEffected++;
+
+                    // the reason we needed that ID, is for this part:
+                    // when we add a stdent, we also need to add a Usuer for for them.
+                    dbL.AddUserForStudent(newID, sApp.studentName);
                 }
 
                 // POST EXECUTION CHECK
@@ -204,6 +214,8 @@ namespace HigherOrLowerAcademyApp
                 studViewForm.GenerateAndShowStudentList();
                 // *** would like to update th status bar on the the viewer form with a success message
                 this.Close();
+
+                MessageBox.Show("Student added. Restart the App to allow them to login.");
             }
         }
 

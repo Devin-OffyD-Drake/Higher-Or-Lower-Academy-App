@@ -10,8 +10,18 @@ Currently in a non-functional state; steady updates will be developed to create 
 ## Update history:
 
 ### Coming Up Next
-* Create a T-SQL query to report student game performance and make it the database source of the Student Viewer
-* Begin progressing towards having the App handle the games themselves by adding a main menu with ability to identify user / admin, with available controls changing accordingly.
+* [Done] Create a T-SQL query to report student game performance and make it the database source of the Student Viewer
+* [Done] Begin progressing towards having the App handle the games themselves by adding a main menu with ability to identify user / admin, with available controls changing accordingly.
+* Individual game interface and recording
+* Simulated mass game playing and recording
+* Context Menu and Status Bar update
+* Export data to csv (or something) functionality
+* Backup and safety update
+
+### 0.3 Users Update
+* New Main Menu startup form, with ability to select App users and login, with the visible menu panels changing to meet the status of the logged in user.
+* Comes with a password editor dialog, and first time password setup mode for new users.
+* Students added through the Student Viewer menu (now only available as Admin user) will automatically have a User entry added for them (requires restart).
 
 ### 0.2.1 Viewer Fields Update
 * The Student viewer now includes reporting fields calculated with SQL Server database views.
