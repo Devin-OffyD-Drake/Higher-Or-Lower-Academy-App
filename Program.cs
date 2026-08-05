@@ -17,15 +17,9 @@ namespace HigherOrLowerAcademyApp
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            StudentViewer startUpForm = new StudentViewer(new DBLiason()); // PICK WHAT FORM STARTS UP HERE - probablyu need a constructor arg to creat the gloabl dbLIason for the first time
+            MainMenu startUpForm = new MainMenu(new DBLiason()); // PICK WHAT FORM STARTS UP HERE - probablyu need a constructor arg to creat the gloabl dbLIason for the first time
 
             Application.Run(startUpForm);
-
-;
-
-
         }
-
-
     }
 }
